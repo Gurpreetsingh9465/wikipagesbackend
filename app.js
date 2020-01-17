@@ -3,6 +3,7 @@ dotenv.config();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const passport = require('passport');
 const path = require('path');
 const UserRoute = require('./routes/controller/user');
 const UtilsRoute = require('./routes/controller/utils');
@@ -17,7 +18,8 @@ const csrfMiddleware = csurf({
 mongoose.connect(process.env.DB,{ 
   useNewUrlParser: true ,
   useUnifiedTopology: true,
-  useCreateIndex: true
+  useCreateIndex: true,
+  useFindAndModify: false
 }, (err) => {
   if(err) {
     debug('DB is not connected error = '+err);
@@ -36,6 +38,8 @@ const conditionalCSRF =  (req, res, next) => {
 
 app.use(conditionalCSRF);
 app.use(express.static(path.join(__dirname, 'uploads')));
+app.use(passport.initialize());
+require('./utils/PassportConfig');
 
 app.use('/api/utils', UtilsRoute);
 app.use('/api', UserRoute);

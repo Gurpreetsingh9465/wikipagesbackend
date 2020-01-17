@@ -1,5 +1,6 @@
 const debug = require('debug')('user:');
 const express = require('express');
+const passport = require('passport');
 const router = express.Router();
 const User = require('../../models/User');
 const mongoErrCode = require('../../utils/MongoErr');
@@ -59,6 +60,20 @@ router.post('/login', (req, res) => {
     }).catch((err)=>{
         return res.status(403).json({error: 'something went wrong'});
     });
+});
+
+router.get("/google",
+    passport.authenticate("google", { scope: ["profile","email"] })
+);
+router.get('/google/callback',passport.authenticate('google',
+{ failureRedirect: "/login", session: false}),
+(req, res, err)=>{
+    debug(err);
+    return res.send('yo');
+    // const payload = { _id: req.user.id };
+    // const token = jwt.sign(payload, process.env.KEY);
+    // res.cookie('token', token, { httpOnly: true });
+    // return res.redirect(process.env.REACT_HOST+'/dashboard');
 });
 
 router.get('/logout',verifyToken ,(req,res)=>{
