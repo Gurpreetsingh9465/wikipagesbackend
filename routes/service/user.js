@@ -3,7 +3,7 @@ const sendMail = require('../../utils/sendMail');
 
 exports.sendConfirmationMail = (userId, email) => {
     const token = jwt.sign({ _id: userId }, process.env.KEY);
-    sendMail(email, 'Verify your account', process.env.SERVERURL+'/api/verify?token='+token);
+    sendMail(email, 'Verify your account', process.env.SERVER_URL+'/api/verify?token='+token);
 }
 
 exports.validateUser = (user, password) => {

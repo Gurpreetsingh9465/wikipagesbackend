@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const path = require('path');
 const UserRoute = require('./routes/controller/user');
+const UtilsRoute = require('./routes/controller/utils');
 const debug = require('debug')('SERVER:');
 const app = express();
 const csurf = require('csurf');
@@ -36,7 +37,8 @@ const conditionalCSRF =  (req, res, next) => {
 app.use(conditionalCSRF);
 app.use(express.static(path.join(__dirname, 'uploads')));
 
-app.use('/api',UserRoute);
+app.use('/api/utils', UtilsRoute);
+app.use('/api', UserRoute);
 
 app.get('/getCsrfToken',(req,res)=>{
     return res.json({'_csrf': req.csrfToken()}).status(200);

@@ -9,7 +9,7 @@ module.exports = (req, res, next) => {
       if (err) {
         return res.status(401).json({error: 'Invalid token'});
       } else {
-        res.locals.id = decoded._id;
+        req._id = decoded._id;
         next();
       }
     });
