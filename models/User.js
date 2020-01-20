@@ -8,8 +8,8 @@ const userSchema = new mongoose.Schema({
   dp: {type: String, required: true, default: '/default.png'},
   isGoogleLogin: {type: Boolean, required: true, default: false},
   isVerified: {type: Boolean, required: true, default: false},
-  bio: {type: String, default: ''}
-});
+  bio: {type: String, default: ''},
+},{timestamps: true});
 
 userSchema.methods.encryptPassword = function(password){
   return bcrypt.hashSync(password,bcrypt.genSaltSync(10),null)

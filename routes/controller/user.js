@@ -7,6 +7,7 @@ const mongoErrCode = require('../../utils/MongoErr');
 const verifyToken = require('../../utils/verifyToken');
 const userService = require('../service/user');
 const jwt = require('jsonwebtoken');
+const limit = 6;
 
 router.get('/user', verifyToken ,(req, res) => {
     User.findById(req._id).select({password: 0}).then((user)=>{
@@ -16,7 +17,26 @@ router.get('/user', verifyToken ,(req, res) => {
         return res.status(404).json({user: null});
     }).catch((err)=>{
         return res.status(403).json({error: 'something went wrong'});
-    })
+    });
+});
+
+router.get('/users', (req, res) => {
+    const searchQuery = req.query.q && req.query.q.length>=1?req.query.q:'';
+    const skip = req.query.skip?Number(req.query.skip):0;
+    if(searchQuery === '') {
+        return res.status(403).json({error: 'something went wrong'});
+    } else {
+        User.find({id: { $regex:'.*'+searchQuery + '.*'}})
+            .sort({created_at: -1})
+            .select({id:1, bio: 1, name: 1, dp: 1})
+            .skip(skip)
+            .limit(limit).then((users)=>{
+                return res.status(200).json(users);
+            }).catch((err)=>{
+                debug(err);
+                return res.status(403).json({error: 'something went wrong'});
+            });
+    }
 });
 
 router.get('/getUserById', (req, res) => {
@@ -62,18 +82,18 @@ router.post('/login', (req, res) => {
     });
 });
 
-router.get("/google",
-    passport.authenticate("google", { scope: ["profile","email"] })
+router.get("/google", passport.authenticate("google", {
+    scope: ["profile","email"] 
+})
 );
+
 router.get('/google/callback',passport.authenticate('google',
-{ failureRedirect: "/login", session: false}),
-(req, res, err)=>{
-    debug(err);
-    return res.send('yo');
-    // const payload = { _id: req.user.id };
-    // const token = jwt.sign(payload, process.env.KEY);
-    // res.cookie('token', token, { httpOnly: true });
-    // return res.redirect(process.env.REACT_HOST+'/dashboard');
+{ failureRedirect: process.env.CLIENT_URL, session: false}),
+(req, res)=>{
+    const payload = { _id: req.user._id };
+    const token = jwt.sign(payload, process.env.KEY);
+    res.cookie('token', token, { httpOnly: true });
+    return res.redirect(process.env.CLIENT_URL+'/'+req.user.id);
 });
 
 router.get('/logout',verifyToken ,(req,res)=>{

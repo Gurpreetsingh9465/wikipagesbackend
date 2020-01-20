@@ -22,15 +22,33 @@ passport.use(
     const name = profile.displayName;
     const email = profile.emails[0].value;
     User.findOneAndUpdate({email: email}, {
-        email: email,
-        name: name,
-        dp: profilePic,
         isVerified: true,
         isGoogleLogin: true,
-    },{upsert: true, new: true,}). then(()=>{
-        return(null, user);
+        password: '',
+    }).then((user)=>{
+        if(user) {
+            return done(null, user);
+        } else {
+            const newUser = new User({
+                dp: profilePic,
+                bio: '',
+                name: name,
+                email: email,
+                id: email.split('@')[0],
+                isVerified: true,
+                isGoogleLogin: true,
+                password: ' ',
+            });
+            newUser.save().then((savedUser)=>{
+                return done(null, savedUser);
+            }).catch((err)=>{
+                debug(err);
+                return done(null, false, { error: "something went wrong" });
+            })
+        }
     }).catch((err)=>{
-        return done(null, false, { error: "something went wrong" })
+        debug(err);
+        return done(null, false, { error: "something went wrong" });
     });
   })
 )

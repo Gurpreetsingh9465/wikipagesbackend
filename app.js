@@ -7,6 +7,7 @@ const passport = require('passport');
 const path = require('path');
 const UserRoute = require('./routes/controller/user');
 const UtilsRoute = require('./routes/controller/utils');
+const BlogsRoute = require('./routes/controller/blogs');
 const debug = require('debug')('SERVER:');
 const app = express();
 const csurf = require('csurf');
@@ -15,7 +16,9 @@ const csrfMiddleware = csurf({
   cookie: true
 });
 
-mongoose.connect(process.env.DB,{ 
+const DB = process.env.PROD === 'TRUE'?process.env.MLAB:process.env.DB;
+
+mongoose.connect(DB,{ 
   useNewUrlParser: true ,
   useUnifiedTopology: true,
   useCreateIndex: true,
@@ -41,11 +44,16 @@ app.use(express.static(path.join(__dirname, 'uploads')));
 app.use(passport.initialize());
 require('./utils/PassportConfig');
 
+app.use('/api/blogs', BlogsRoute);
 app.use('/api/utils', UtilsRoute);
 app.use('/api', UserRoute);
 
 app.get('/getCsrfToken',(req,res)=>{
     return res.json({'_csrf': req.csrfToken()}).status(200);
+});
+
+app.get('/*', function (req, res) {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
 app.listen(process.env.PORT,() => {
